@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% load static %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.min.css?timestamp={{timestamp}}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js?timestamp={{timestamp}}"></script>
+    <script src="http://code.jquery.com/jquery-3.5.1.min.js?timestamp={{timestamp}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js?timestamp={{timestamp}}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.js?timestamp={{timestamp}}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/easy-pie-chart/2.1.6/jquery.easypiechart.min.js?timestamp={{timestamp}}"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css?timestamp={{timestamp}}"/>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js?timestamp={{timestamp}}"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css?timestamp={{timestamp}}"/>
+    <link rel="icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="{% static 'submenu/submenu.css' %}?timestamp={{timestamp}}">
+  </head>
+  <body>
+    <div class="topbar" style="position: absolute; top:0;">
+      <div class="left side-menu">
+        <div class="sidebar-inner">
+          <div id="sidebar-menu">
+            <ul>
+              <li class="has_sub"><a href="javascript:void(0);" class="waves-effect">
+                <i class="fas fa-bars"></i>
+                </a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="left_sub_menu" style="overflow:auto;">
+        <div class="sub_menu">
+          <h2><a href="">Logic Design</a></h2>
+          {% for list in Ongoing %}
+            <ul class="big_menu">
+              <li class="click_big">{{list.ProjectName}} <i class="arrow fas fa-angle-right"></i></li>
+                <ul id="{{list.id}}" class="small_menu ongoing">
+                  <li><a class="real_time">Real_Time</a></li>
+                  <li><a id="{{list.ProjectName}}" class="weekly_chart">Weekly Chart</a></li>
+                  <li><a class="failed_list">Failed_List</a></li>
+                  {% for each_dut in list.dut_list %}
+                    {% with project_name=list.ProjectName dut_name=each_dut %}
+                    <li><a class="coverage" href="{% static 'project_meta_data/'|add:project_name|add:'/latest/'|add:dut_name|add:'/mergedReport/dashboard.html' %}" data-name="{{list.ProjectName}}" data-dut="{{each_dut}}">Coverage-{{each_dut}}</a></li>
+                    {% endwith %}
+                  {% endfor %}
+                </ul>
+              </ul>
+          {% endfor %}
+            <ul class="complete">
+              <li class="click_top">Complete Regr<i class="arrow fas fa-angle-down"></i></li>
+              {% for list in Completed %}
+              <ul class="big_menu">
+                <li class="click_big">{{list.ProjectName}} <i class="arrow fas fa-angle-right"></i></li>
+                <ul id="{{list.id}}" class="small_menu">
+                  <li><a id="{{list.ProjectName}}" class="weekly_chart">Weekly_Chart</a></li>
+                </ul>
+              </ul>
+              {% endfor %}
+            </ul>
+            <ul class="previous">
+              <li class="click_top">Previous Data<i class="arrow fas fa-angle-down"></i></li>
+              <ul class="big_menu" style="display:none;">
+                <li style="font-size:13px; text-align:right; margin-right:0.5rem; line-height:2; cursor:default;">
+                  Project :
+                  <select name="project">
+                    {% for list in Ongoing %}
+                    <option value="{{list.id}}">{{list.ProjectName}}</option>
+                    {% endfor %}
+                  </select>
+                  Build_Date :
+                  <button type="button" id="previous_button">Go!</button>
+                </li>
+
+              </ul>
+            </ul>
+            <ul class="search">
+              <li class="click_top">Search<i class="arrow fas fa-angle-down"></i></li>
+              <ul class="big_menu">
+                <li style="font-size:13px; text-align:right; margin-right:0.5rem; line-height:2; cursor:default;">
+                  Project :
+                  <select name="project_search">
+                    {% for list in Ongoing %}
+                    <option value="{{list.id}}">{{list.ProjectName}}</option>
+                    {% endfor %}
+                  </select>
+                  <span class="select" style="display:block">
+                  <input type="radio" id="search_list" name="chk" value="LIST" checked="checked"><label for="search_list">Test_List</label>
+                  <input type="radio" id="search_case" name="chk" value="CASE"><label for="search_case">Test_Case</label>
+                  </span>
+                  <input type="TEXT" id="test_name" style="width:90%;">
+                  <button type="button" id="search_button">Go!</button>
+                </li>
+              </ul>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <script src="{% static 'submenu/submenu.js' %}?timestamp={{timestamp}}"></script>
+    <div class="overlay" style="overflow:auto; white-space: nowrap">
+      <link rel="stylesheet" href="{% static 'submenu/mainchart.css' %}?timestamp={{timestamp}}">
+      <!-- <script src="{% static 'submenu/mainchart.js' %}"></script> -->
+      <div class="hello">
+        <div class="container">
+          {% for list in Ongoing %}
+          <div class="box">
+            <div class="chart" data-percent="{{list.ratio}}" data-scale-color="#ffb400">{{list.ratio}}%</div>
+            <h2>{{list.ProjectName}}</h2>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

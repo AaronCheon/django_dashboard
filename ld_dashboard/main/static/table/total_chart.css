@@ -1,0 +1,26 @@
+  #total_table tbody>tr {
+    counter-increment: aaa;
+  }
+  #total_table tbody>tr>td:first-child:before {
+    content: counter(aaa) " ";
+  }
+  #total_table .Seq{
+    background-color: beige;
+  }
+  #total_table td{
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  #total_table tr {
+    text-align: center;
+  }
+
+  #total_table .Total {
+    background-color:azure;
+  }
+  #total_table .Passed {
+    background-color:#FFE3EE;
+  }
+  #total_table .Failed {
+    background-color:#FFB0CF;
+  }

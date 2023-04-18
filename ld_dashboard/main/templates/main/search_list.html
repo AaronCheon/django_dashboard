@@ -1,0 +1,56 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'table/testlist.css' %}?timestamp={{timestamp}}">
+<div>
+  <h1></h1><h1 style="display:inline" class="TableName">{{project.ProjectName}} TestList Result</h1>
+  <h1></h1>
+  <div style="padding-bottom:30px;">
+    {% for testlist in testlists %}
+    <h2 class="search_list_name">{{testlist.ListName}} <button class="show_all hidden">Show All</button></h2>
+    <ul class="search_list hidden">
+    {% for testcase in testcases %}
+    {% if testcase.TestList == testlist %}
+      <li class="search_li">{{ testcase.CaseName }}</li>
+      <table style="margin-left:5rem;" class="caseTable hidden">
+        <thead>
+          <tr>
+            <th>Result <button class="sort">▼</button></th>
+            <th>Command</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Path</th>
+            <th>Commit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for testcasedetail in testcase_details %}
+          {% if testcasedetail.TestCase == testcase %}
+          <tr>
+            <td class="result">
+              <span>
+                <span class="status_text">{{testcasedetail.Result}}</span>
+              </span>
+            </td>
+            <td>
+              <span class="command_icon"><i class="fa-solid fa-up-right-from-square"></i></span>
+              <span class="command">{{testcasedetail.Command}}</span>
+            </td>
+            <td class="">{{testcasedetail.StartDate|date:"Y-m-d H:i"}}</td>
+            <td class="">{{testcasedetail.EndDate|date:"Y-m-d H:i"}}</td>
+            <td>
+              <span class="hidden simpath">{{testcasedetail.SimPath}}</span>
+              <img class="paste_img" src="/static/table/paste.png">
+              <span class="hidden Copied">Copied!!</span>
+            </td>
+            <td class="commit">{{testcasedetail.Commit}}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+      {% endfor %}
+    </ul>
+    {% endfor %}
+  </div>
+</div>
+<script src="{% static 'table/testcase.js' %}?timestamp={{timestamp}}"></script>

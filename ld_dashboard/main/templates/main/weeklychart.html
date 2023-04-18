@@ -1,0 +1,92 @@
+{% with passed_list=passed|join:"," %}
+  {% with failed_list=failed|join:"," %}
+    {% with total_list=total|join:"," %}
+        <a style="display:none;" id="data_passed">{{passed_list}}</a>
+        <a style="display:none;" id="data_failed">{{failed_list}}</a>
+        <a style="display:none;" id="data_total">{{total_list}}</a>
+    {% endwith %}
+  {% endwith %}
+{% endwith %}
+<a style="display:none;" id="data_datetime">{{datetime|safe}}</a>
+<div style="height: 100%;width: 59%;">
+<h1>{{project}} Weekly Report</h1>
+<canvas id="line-chart" width="800" height="450"></canvas>
+<script >
+  var passed = $('#data_passed').text().split(',').map(Number);
+  var failed = $('#data_failed').text().split(',').map(Number);
+  var total = $('#data_total').text().split(',').map(Number);
+  var datetime =  $('#data_datetime').text().replace("[","").replace("]","").replaceAll("'","");
+  var datetimeArr = datetime.split(',');
+new Chart(document.getElementById("line-chart"), {
+  type: 'line',
+  data: {
+    labels: datetimeArr,
+    datasets: [{
+        data: total,
+        label: "Total",
+        borderColor: "#3e95cd",
+        fill: false
+      }, {
+        data: passed,
+        label: "Passed",
+        borderColor: "#8e5ea2",
+        fill: false
+      }, {
+        data: failed,
+        label: "Failed",
+        borderColor: "#c45850",
+        fill: false
+      }
+    ]
+  },
+  options: {
+    title: {
+      display: true,
+      text: 'Weekly Report'
+    }
+  }
+});
+</script>
+</div>
+<div style="height: 100%; width: 40%; display: flex; justify-content: center; align-items: left; flex-direction:column;">
+  <h1 style="margin-left:2rem;">Total result Table</h1>
+  <style>
+    #total_table td{
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+    #total_table tr {
+      text-align: center;
+    }
+
+    #total_table tr,
+    #total_table td,
+    #total_table th {
+    border: 2px solid #444444;
+    font-size : 15pt;
+    }
+
+    #total_table .Total {
+      background-color:azure;
+    }
+    #total_table .Passed {
+      background-color:#FFE3EE;
+    }
+    #total_table .Failed {
+      background-color:#FFB0CF;
+    }
+  </style>
+  <table id="total_table" style="display: inline-block; margin-left:2rem;">
+    <thead><tr><th>Date</th><th>Total</th><th>Passed</th><th>Failed</th></tr></thead>
+    <tbody>
+      {% for weekly in weeklyData %}
+      <tr>
+        <td>{{weekly.datetime|date:"Y-m-d"}}</td>
+        <td class="Total">{{weekly.Total}}</td>
+        <td class="Passed">{{weekly.Passed}}</td>
+        <td class="Failed">{{weekly.Failed}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

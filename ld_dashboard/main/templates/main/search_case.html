@@ -1,0 +1,52 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'table/testlist.css' %}?timestamp={{timestamp}}">
+<div>
+  <h1></h1><h1 style="display:inline" class="TableName">{{project.ProjectName}} TestCase Result</h1>
+  <h1></h1>
+  <div style="padding-bottom:30px;">
+    <button class="show_all_case">Show All</button>
+    {% for testcase in testcases %}
+    <h3 class="search_list_name">{{testcase.CaseName}}</h3>
+    <ul class="search_case hidden">
+      <table style="margin-left:5rem;" class="caseTable">
+        <thead>
+          <tr>
+            <th>Result <button class="sort">▼</button></th>
+            <th>Command</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Path</th>
+            <th>Commit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for testcasedetail in testcase_details %}
+          {% if testcasedetail.TestCase == testcase %}
+          <tr>
+            <td class="result">
+              <span>
+                <span class="status_text">{{testcasedetail.Result}}</span>
+              </span>
+            </td>
+            <td>
+              <span class="command_icon"><i class="fa-solid fa-up-right-from-square"></i></span>
+              <span class="command">{{testcasedetail.Command}}</span>
+            </td>
+            <td class="">{{testcasedetail.StartDate|date:"Y-m-d H:i"}}</td>
+            <td class="">{{testcasedetail.EndDate|date:"Y-m-d H:i"}}</td>
+            <td>
+              <span class="hidden simpath">{{testcasedetail.SimPath}}</span>
+              <img class="paste_img" src="/static/table/paste.png">
+              <span class="hidden Copied">Copied!!</span>
+            </td>
+            <td class="commit">{{testcasedetail.Commit}}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </ul>
+    {% endfor %}
+  </div>
+</div>
+<script src="{% static 'table/testcase.js' %}?timestamp={{timestamp}}"></script>

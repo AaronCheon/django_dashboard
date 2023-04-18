@@ -1,0 +1,37 @@
+{% load static %}
+<thead>
+  <tr>
+    <th>Case Name</th>
+    <th>Result <button class="sort">▼</button></th>
+    <th>Command</th>
+    <th>Start Date</th>
+    <th>End Date</th>
+    <th>Path</th>
+    <th>Commit</th>
+  </tr>
+</thead>
+<tbody>
+  {% for list in testcase %}
+  <tr>
+    <td>{{list.TestCase.CaseName}}</td>
+    <td class="result">
+      <span>
+        <span class="status_text">{{list.Result}}</span>
+      </span>
+    </td>
+    <td>
+      <span class="command_icon"><i class="fa-solid fa-up-right-from-square"></i></span>
+      <span class="command">{{list.Command}}</span>
+    </td>
+    <td class="">{{list.StartDate|date:"Y-m-d H:i"}}</td>
+    <td class="">{{list.EndDate|date:"Y-m-d H:i"}}</td>
+    <td>
+      <span class="hidden simpath">{{list.SimPath}}</span>
+      <img class="paste_img" src="/static/table/paste.png">
+      <span class="hidden Copied">Copied!!</span>
+    </td>
+    <td class="commit">{{list.Commit}}</td>
+  </tr>
+  {% endfor %}
+</tbody>
+<script src="{% static 'table/testcase.js' %}?timestamp={{timestamp}}"></script>

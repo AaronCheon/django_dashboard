@@ -1,0 +1,65 @@
+[[document-title]]
+= Weekly Regression Report
+
+[.logo]
+image::{{templates_dir}}/css/logo-v1.png[]
+
+[[copyright-notice]]
+© Inc.
+
+
+[[colophon-title]]
+== IMPORTANT NOTICE
+
+CAUTION: It must not be passed outside of
+
+== Total regression reposrt
+The results of the "regression" run over the weekend are available.
+
+[cols=5*,options=header]
+|===
+|IP/SS Name
+|TOTAL
+|PASSED
+|FAILED
+|PROGRESS(%)
+
+{%- for each in LATEST_RESULT %}
+|{{each}}
+|{{LATEST_RESULT[each].TOTAL}}
+|{{LATEST_RESULT[each].PASSED}}
+|{{LATEST_RESULT[each].FAILED}}
+|{{LATEST_RESULT[each].PROGRESS}} (%)
+{% endfor %}
+
+|TOTAL
+|{{PROJECT_TOTAL}}
+|{{PROJECT_PASSED}}
+|{{PROJECT_FAILED}}
+|{{PROJECT_PROGRESS}} (%)
+
+|===
+
+
+{% for each in LATEST_RESULT %}
+
+== TEST_LIST : {{each}}
+[cols=3*,options=header]
+|===
+|TEST Name
+|RESULT
+|COMMIT
+
+{% for each_test in LATEST_RESULT[each].TEST_CASES.PASSED_TEST_LISTS %}
+|{{each_test.name}}
+|PASSED
+|{{each_test.commit}}
+{% endfor %}
+{%- for each_test in LATEST_RESULT[each].TEST_CASES.FAILED_TEST_LISTS %}
+|{{each_test.name}}
+|FAILED
+|{{each_test.commit}}
+{% endfor %}
+
+|===
+{% endfor %}

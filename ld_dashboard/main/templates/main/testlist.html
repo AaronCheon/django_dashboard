@@ -1,0 +1,69 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'table/testlist.css' %}?timestamp={{timestamp}}">
+<div>
+  <span id="previous_span" class="hidden">{{previous}}</span>
+  <span id="previous_date" class="hidden">{{build_date}}</span>
+  <h1></h1><h1 style="display:inline" class="TableName">{{project.ProjectName}}  Real-Time Result</h1>
+  <h2 style="display:inline; margin-left:9rem;" id="update">Update : {{end_date}}  ({{end_commit}})</h2>
+  <h1></h1>
+  <div style="padding-bottom:30px;">
+    <table id="Resulttable">
+      <thead>
+        <tr>
+          <th>IP Name</th>
+          <th>Total</th>
+          <th>PASSED</th>
+          <th>RUNNING</th>
+          <th>PENDING</th>
+          <th>FAILED</th>
+          <th>DUT</th>
+          <th>RATIO</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for list in testlist %}
+        <tr>
+          <td id="{{list.id}}" class="IPName Name" style="position:relative">{{list.ListName}}<button style="position:absolute; right:0.5rem;">▼</button></td>
+          <td class="total Name">{{list.total_cases}}</td>
+          <td class="passed Name">{{list.passed_cases}}</td>
+          <td class="running Name">{{list.runing_cases}}</td>
+          <td class="pending Name">{{list.pending_cases}}</td>
+          <td class="failed Name">{{list.failed_cases}}</td>
+          <td class="Name">{{list.DutName}}</td>
+          <td class="Ratio Name"></td>
+        </tr>
+        <tr style="display:none;">
+          <td colspan="8" align="left" style="border-left:none;">
+            <table style="margin-left:5rem;" class="caseTable">
+            </table>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td id="TotalName">TOTAL</td>
+          <td id="TTotal"></td>
+          <td id="TPassed"></td>
+          <td id="TRunning"></td>
+          <td id="TPending"></td>
+          <td id="TFailed"></td>
+          <td id="TRatio" colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+<div style="padding-left: 20px; padding-bottom:100px;">
+  <canvas id="myChart" width="500" height="400"></canvas>
+  </div>
+<script>
+  $(document).ready(function(){
+    if($('#previous_span').text() == 'previous'){
+      console.log('change');
+      $('#update').text(`Previous Data : ${$('#previous_date').text()}`);
+      $('#update').css('margin-left','12rem');
+    };
+  })
+</script>
+<script src="{% static 'table/testlist.js' %}?timestamp={{timestamp}}"></script>

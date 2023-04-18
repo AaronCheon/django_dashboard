@@ -1,0 +1,48 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'table/testlist.css' %}?timestamp={{timestamp}}">
+<div>
+  <h1></h1><h1 style="display:inline" class="TableName">{{project.ProjectName}} Failed_List</h1>
+  <h2 style="display:inline; margin-left:140px;" id="update"></h2>
+  <h1></h1>
+  <div style="padding-bottom:30px;">
+    <table id="Resulttable">
+      <thead>
+        <tr>
+          <th>TestList</th>
+          <th>TestCase</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for list in failedlist %}
+        <tr>
+          <td class="IPName">{{list.TestCase.TestList.ListName}}</td>
+          <td>{{list.TestCase.CaseName}}</td>
+          <td class="result">
+            <span>
+              <span class="status_text">{{list.Result}}</span>
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td id="TotalName">TOTAL</td>
+          <td id="TTotal" colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+<script>
+  $(".status_text").each(function(){
+    var a = $(this).text();
+    $(this).parent('span').addClass(a);
+  })
+
+  $(document).ready(function(){
+    var total = $('#Resulttable tbody tr').length;
+    $('#TTotal').text(total);
+  });
+</script>

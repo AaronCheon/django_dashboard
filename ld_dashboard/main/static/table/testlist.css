@@ -1,0 +1,166 @@
+.overlay div {
+  display: inline-block;
+}
+
+tr {
+  text-align: center;
+}
+
+.Name {
+  background-color:azure;
+}
+.IPName{
+  background-color: beige;
+}
+.Ratio{
+  background-color: rgb(220, 255, 220);
+}
+
+.paste_img {
+  width : 15pt;
+  height : 15pt;
+  cursor: pointer;
+}
+
+#Resulttable {
+  border: 1px solid #444444;
+  width: 60rem;
+}
+
+#Resulttable td,
+#Resulttable th {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#Resulttable tr,
+#Resulttable td,
+#Resulttable th {
+  border: 1px solid #444444;
+}
+
+.caseTable{
+  margin : 1rem 1rem 1rem 0;
+  border: 2px solid #444444;
+  border-collapse : collapse;
+}
+
+.caseTable td,
+.caseTable th {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.caseTable tr, .caseTable td, .caseTable th {
+  border: 1px solid #444444;
+}
+
+
+.PASSED,.FAILED,.RUNNING,.PENDING,.C_FAILED,.SLRUM_FAILED,.SLURM_FAILED_QUEUE{
+  letter-spacing: -0.005em;
+  display: inline-block;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 2px 0px 3px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1;
+  text-transform: uppercase;
+  vertical-align: baseline;
+}
+
+
+
+.PASSED{
+  background-color: var(--ds-background-success,#E3FCEF);
+  color: var(--ds-text-success,#006644);
+}
+.RUNNING{
+  background-color: var(--ds-background-information,#DEEBFF);
+  color: var(--ds-text-information,#0747A6);
+}
+.PENDING{
+  background-color: var(--ds-background-warning,#FFF0B3);
+  color: var(--ds-text-warning,#172B4D);
+}
+.FAILED,.C_FAILED,.SLRUM_FAILED,.SLURM_FAILED_QUEUE{
+  background-color: var(--ds-background-danger,#FFEBE6);
+  color: var(--ds-text-danger,#BF2600);
+}
+.status_text {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0px 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+
+.command{
+  display:none;
+  --ds--code--bg-color: var(--ds-background-neutral, rgba(9, 30, 66, 0.08));
+  font-size: 0.875em;
+  font-family: SFMono-Medium, "SF Mono", "Segoe UI Mono", "Roboto Mono", "Ubuntu Mono", Menlo, Consolas, Courier, monospace;
+  background-color: var(--ds--code--bg-color,var(--ds-background-neutral, #F4F5F7));
+  color: var(--ds-text, #172B4D);
+  border-style: none;
+  border-radius: 3px;
+  padding: 1px 0.3ch;
+  vertical-align: middle;
+}
+
+.command_icon{
+  cursor: pointer;
+  width: 15pt;
+  height: 15pt;
+  margin-left:0.2rem;
+}
+ul.search_list li:first-child {
+  border-top: 0;
+}
+
+ul.search_list li,
+ol.search_list li {
+  padding: 0.5rem 0px 0px 0px;
+  margin-bottom: 5px;
+  border-top: 2px solid #dddddd;
+  cursor: pointer;
+  min-width: 50rem;
+}
+
+ul.search_list li:before,
+ol.search_list li:before {
+    content: "◦";
+    display: inline-block;
+    vertical-align: middle;
+    padding: 0px 1.5rem 6px 2.4rem;
+    font-size: 1.5em;
+}
+
+.search_list_name {
+  cursor: pointer;
+}
+.search_list_name::before {
+  content: "•";
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 1.5em;
+  padding: 0px 2rem 0.5rem 0px;
+}
+
+.show_all,
+.show_all_case {
+  margin-left:30rem;
+  font-size:17px;
+}
+
+ul.search_case,
+ul.search_list {
+  border-bottom: 2px solid #999999;
+  min-width: 50rem;
+}

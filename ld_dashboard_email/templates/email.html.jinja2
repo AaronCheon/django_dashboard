@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% set first = weekly.RESULT[-1].DATE %}
+{% set last = weekly.RESULT[0].DATE %}
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.6.1">
+<title>[{{ result.PROJECT }}] REGRESSION REPORT  - {{ first }}</title>
+</head>
+<body class="book">
+<div id="header">
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="colophon-title">[{{ result.PROJECT }}] REGRESSION REPORT  - {{ first }}</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>|===== Today Regression Summary =====|</p>
+</div>
+<div class="paragraph">
+<p>TOTAL  : {{ result.PROJECT_TOTAL }}</p>
+</div>
+<div class="paragraph">
+<p>PASSED : {{ result.PROJECT_PASSED }}</p>
+</div>
+<div class="paragraph">
+<p>FAILED : {{ result.PROJECT_FAILED }}</p>
+</div>
+<div class="paragraph">
+<p>PROGRESS : {{ result.PROJECT_PROGRESS }}%</p>
+</div>
+<div class="paragraph">
+<p>|=============================|</p>
+</div>
+<div class="paragraph">
+<p>All test-cases are serialized. Therefore, if simulation-hang occurs, regression may not work properly. There is no separate timeout in jenkins.</p>
+</div>
+<div class="paragraph">
+<p>The table is the regression results for each IP.</p>
+</div>
+<div class="paragraph">
+  <p>Real-time information can be found at url : <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a></p>
+</div>
+{% if result.CONFLUENCE != "" %}
+<div class="paragraph">
+<p>confluence url : <a href={{ result.CONFLUENCE }}>{{ result.CONFLUENCE }}</a></p>
+</div>
+{% endif %}
+<div class="paragraph">
+<p>start_date : {{ last }}</p>
+</div>
+<div class="paragraph">
+<p>today_date : {{ first }}</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<div style="text-align : center; margin-left: auto; margin-right: auto;">
+      <p>
+        <img src="chart.jpeg">
+      </p>
+  </div>
+
+</div>
+</div>
+<div style="text-align : center; width: 500px;"><table id="table-configuration-parameters" class="tableblock frame-all grid-all spread"style="text-align: center; background: #FAFAFA;"width ="700">
+<caption class="title">Table 1. IP BLOCK Regression result</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+</colgroup>
+<thead style="background: #E0F2F7;">
+<tr>
+<th class="tableblock halign-left valign-top">IP Name</th>
+<th class="tableblock halign-left valign-top">TOTAL</th>
+<th class="tableblock halign-left valign-top">PASSED</th>
+<th class="tableblock halign-left valign-top">FAILED</th>
+<th class="tableblock halign-left valign-top">PROGRESS(%)</th>
+</tr>
+</thead>
+<tbody>
+{% for each,value in result.LATEST_RESULT.items() %}
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">{{each}}</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">{{value.TOTAL}}</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">{{value.PASSED}}</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">{{value.FAILED}}</p></td>
+<td class="tableblock halign-left valign-top" {% if value.PROGRESS==100 %}bgcolor=#00ff99{% elif value.PROGRESS==0 %}bgcolor=#ffcc66{%else%}bgcolor=#99ff99{% endif%}><p class="tableblock">{{value.PROGRESS}}(%)</p></td>
+</tr>
+{% endfor %}
+</tbody>
+</div></div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+</div>
+</div>
+</body>
+</html>
