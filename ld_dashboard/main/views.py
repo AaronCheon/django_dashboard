@@ -1,18 +1,34 @@
-from django.shortcuts import (get_object_or_404, render)
+from django.shortcuts import (get_object_or_404,
+                              render,
+                              HttpResponseRedirect)
 from . import models
+from django.views.generic import TemplateView
 from django.http import HttpResponse, Http404, JsonResponse
+from django.core import serializers
+from django.core.exceptions import PermissionDenied
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from django.db.models import Count
+from django.db.models import Max, F, Count
 import json
 from django.utils import timezone
 import os, subprocess
 from django.conf import settings
+from django.db.models import Q
 import time
 
 timestamp = int(time.time())
 
-# Create your views here.
+"""
+Render Main HTML Data
+
+index(request)            : submenu.html      (html side_menu)
+detail(request, number)   : testlist.html     (render 'models.TestList')
+cases(request, number)    : testcase.html     (render 'models.TestCase' each TestCase_Detail lastest data)
+weekly(request, project)  : weeklychart.html  (render 'models.WeeklyTable')
+failed(request, number)   : failedlist.html   (render 'models.TestCase' each TestCase_Detail Result=failed)
+"""
+# submenu.html
 def index(request):
   content = {}
   content['timestamp'] = timestamp
@@ -37,6 +53,7 @@ def index(request):
     content['Ongoing'][each].dut_list = dut_list
   return render(request,'main/submenu.html', content)
 
+# testlist.html
 def detail(request, number):
   project_name = models.Project.objects.get(pk=number)
   testlist = models.TestList.objects.filter(Project_id=number, Used=1).order_by('ListName')
@@ -58,14 +75,17 @@ def detail(request, number):
     'timestamp' : timestamp
     })
 
+# testcase.html
 def cases(request, number):
   testcases = models.TestCase.objects.filter(TestList_id=number, Used=1)
   data = [each.latest() for each in testcases]
   for each in range(len(data)):
     if data[each].Result == "SLRUM_FAILED_QUEUE":
+      # print(data[each].Result)
       data[each].Result = "C_FAILED"
   return render (request, 'main/testcase.html', {'testcase' : data, 'timestamp':timestamp})
 
+# weeklychart.html
 def weekly(request, project):
   weeklyData = models.WeeklyTable.objects.filter(ProjectName=project).order_by('datetime')
   weeklyData_desc = models.WeeklyTable.objects.filter(ProjectName=project).order_by('-datetime')
@@ -82,6 +102,7 @@ def weekly(request, project):
     datetime.append(str(each.get('datetime')))
   return render (request, 'main/weeklychart.html', {'weeklyData': weeklyData_desc, 'passed' : passed, 'failed' : failed, 'total' : total, 'datetime' : datetime, 'project':project})
 
+# failedlist.html
 def failed(request, number) :
   project_name = models.Project.objects.get(pk=number)
   testcases = models.TestCase.objects.filter(TestList__Project_id=number, TestList__Used=1, Used=1)
@@ -93,14 +114,24 @@ def failed(request, number) :
   return render (request, 'main/failedlist.html', {'project'  : project_name, 'failedlist' : obj, 'timestamp': timestamp})
 
 
+"""
+Django Rest API
 
+jenkins_full(request)           : Add New 'TestList', 'TestCase', 'TestCase_Detail' Data
+jenkins_simulation(request)     : Update 'TestCase_Detail' Result (RUNNING, PASSED, FAILED, SLRUM_FAILED, FAILED, C_FAILED, SLRUM_FAILED_QUEUE)
+get_report(request, project)    : For ld_dashboard_email return latest Total Result
+get_weekly(request, project)    : For ld_dashboard_email return 'WeeklyTable' Result
+get_receivers(request, project) : For ld_dashboard_email return 'Project' -> 'User List'
+update_weekly(request, project) : Update 'WeeklyTable'
+delete(request)                 : Delete all data on a specific date
+"""
 @csrf_exempt
 def jenkins_full(request):
+# curl -X POST -H 'Content-Type: application/json' -d '{"project" : "tmp_project", "test" : [{"test_list" : "tmp_list1","name" : "tmp_case1","dut" : "FULL"}, ... }' http://127.0.0.1:8000/jenkins_full/
   if request.method == 'POST':
     data = json.loads(request.body)
     project_name = data.get('project')
     test_results = data.get('test')
-
     project = get_object_or_404(models.Project, ProjectName=project_name)
     existing_testlists = models.TestList.objects.filter(Project=project)
     existing_testcases=models.TestCase.objects.filter(TestList__in=existing_testlists)
@@ -126,12 +157,12 @@ def jenkins_full(request):
         models.TestCase_Detail.objects.create(TestCase=test_case, Result='PENDING', BuildDate=build_date)
 
     return JsonResponse({'message': 'Test results updated successfully.'})
-
   else:
     return JsonResponse({'message': 'Invalid request method.'})
 
 @csrf_exempt
 def jenkins_simulation(request):
+# curl -X POST -H 'Content-Type: application/json' -d '{"project" : "tmp_project","test_list" : "tmp_list1","name" : "tmp_case1","Result" : "RUNNING","SimPath" : "/home/aaron/tmp_case1"}' http://127.0.0.1:8000/jenkins_simulation/
   if request.method == 'POST':
     data = json.loads(request.body)
     project_name = data.get('project')
@@ -139,7 +170,6 @@ def jenkins_simulation(request):
     case_name = data.get('name')
     result = data.get('Result')
     project = get_object_or_404(models.Project, ProjectName=project_name)
-
     testlist = models.TestList.objects.get(Project=project, ListName=list_name)
     testcase = models.TestCase.objects.get(TestList=testlist, CaseName=case_name)
     testcase_detail = models.TestCase_Detail.objects.filter(Canceled=0, TestCase=testcase).last()
@@ -151,8 +181,6 @@ def jenkins_simulation(request):
       tmp_dict[each] =  list(testcase_detail.values_list(each, flat=True))[0]
       if each in data.keys():
         tmp_dict[each] =  data.get(each)
-
-
     if result=='RUNNING':
       tmp_dict['StartDate']=timezone.now()
     elif result=='PASSED' or result=='FAILED' or result=='SLRUM_FAILED' or result=='C_FAILED' or result=='SLRUM_FAILED_QUEUE':
@@ -160,16 +188,13 @@ def jenkins_simulation(request):
 
     testcase_detail.update(**tmp_dict)
 
-    return JsonResponse({'message': 'Test results updated successfully.',
-                         'key' : testcase_detail.values_list('id', flat=True).last()
-                         })
-
+    return JsonResponse({'message': 'Test results updated successfully.','key' : testcase_detail.values_list('id', flat=True).last()})
   else:
     return JsonResponse({'message': 'Invalid request method.'})
 
 def get_report(request, project):
+# curl http://127.0.0.1:8000/get_report/tmp_project1
   if request.method == 'GET':
-
     project_q = get_object_or_404(models.Project, ProjectName=project)
     existing_testlists = models.TestList.objects.filter(Project=project_q, Used=1)
     buf_test_lists = { each.replace(f"{project}.","") : {
@@ -186,7 +211,6 @@ def get_report(request, project):
       } for each in [ str(each_in) for each_in in existing_testlists] }
 
     print(buf_test_lists)
-
     test_list_dut = {}
     for each in models.TestList.objects.filter(Project_id=project_q.id, Used=1):
       if not test_list_dut.get(each.DutName):
@@ -197,7 +221,6 @@ def get_report(request, project):
     data = [each.latest() for each in testcases]
     for each in data:
       test_list = str(each.TestCase).split(".")[0]
-
       if buf_test_lists.get(test_list):
         if   each.Result == 'PASSED':
           buf_test_lists[test_list]['TEST_CASES']['PASSED_TEST_LISTS'].append( { 'name' : str(each.TestCase).split(".")[1] , 'commit' : each.Commit} )
@@ -214,7 +237,6 @@ def get_report(request, project):
         FAILED = len( (value.get('TEST_CASES')).get('FAILED_TEST_LISTS') )
       )
       buf_test_lists[key].update( PROGRESS = int(buf_test_lists[key].get('PASSED') * 100 / buf_test_lists[key].get('TOTAL')) )
-
     p_total    = sum([ each_total['TOTAL'] for each_total in buf_test_lists.values() ])
     p_passed   = sum([ each_total['PASSED'] for each_total in buf_test_lists.values() ])
     p_failed   = sum([ each_total['FAILED'] for each_total in buf_test_lists.values() ])
@@ -232,7 +254,8 @@ def get_report(request, project):
   else:
     return JsonResponse({'TEST_FAILED' : request.method, 'PROJECT' : project })
 
-def get_weekly (request, project):
+def get_weekly(request, project):
+# curl http://127.0.0.1:8000/get_weekly/tmp_project1
   if request.method == 'GET':
     project_q = get_object_or_404(models.Project, ProjectName=project)
     weekly_data = models.WeeklyTable.objects.filter(ProjectName=project_q.ProjectName).order_by('datetime')
@@ -251,7 +274,8 @@ def get_weekly (request, project):
   else:
     return JsonResponse({'message': 'Invalid request method.'})
 
-def get_receivers (request, project):
+def get_receivers(request, project):
+# curl http://127.0.0.1:8000/get_receivers/tmp_project1
   if request.method == 'GET':
     project_q = get_object_or_404(models.Project, ProjectName=project)
     receivers_list = json.loads(project_q.User_List)
@@ -262,11 +286,9 @@ def get_receivers (request, project):
 @csrf_exempt
 def update_weekly(request, project):
   if request.method == 'POST':
-
     project_q = get_object_or_404(models.Project, ProjectName=project)
     testcases = models.TestCase.objects.filter(TestList__Project_id=project_q.id,  TestList__Used=1, Used=1)
     test_result = [ each.Result for each in [each.latest() for each in testcases] ]
-
     this_weeklyData = models.WeeklyTable(
       Total = len(test_result) ,
       Passed = test_result.count("PASSED") ,
@@ -296,9 +318,42 @@ def get_slurm_queue_failed(request, project):
   else:
     return JsonResponse({'message': 'Invalid request method.'})
 
+@csrf_exempt
+def delete(request):
+# curl -X POST -H 'Content-Type: application/json' -d '{"project" : "tmp_project1","date" : "2023-04-14"}' http://127.0.0.1:8000/delete/
+  if request.method == 'POST':
+    data = json.loads(request.body)
+    project_name = data.get('project')
+    build_date = data.get('date')
+    project = get_object_or_404(models.Project, ProjectName=project_name)
+
+    # 해당 날짜 testcase_detail 삭제
+    testcase_details = models.TestCase_Detail.objects.filter(TestCase__TestList__Project=project, BuildDate=build_date)
+    count_details = testcase_details.count()
+    testcase_details.delete()
+
+    # TestCase_detail이 존재하지 않는 Testcase 삭제
+    testcases = models.TestCase.objects.annotate(num_details=Count('testcase_detail')).filter(num_details=0, TestList__Project=project)
+    count_cases = testcases.count()
+    testcases.delete()
+
+    # TestCase가 존재하지 않는 TestList 삭제
+    testlists = models.TestList.objects.annotate(num_cases=Count('testcase')).filter(num_cases=0, Project=project)
+    count_lists = testlists.count()
+    testlists.delete()
+    return JsonResponse({ 'message': f'{count_lists} Lists, {count_cases} Cases, {count_details} Details are deleted'})
+  else:
+    return JsonResponse({'message': 'Invalid request method.'})
 
 
-##### Previous Build Data #####
+"""
+Get Previous Data
+
+index_selectbox(request, num)                 : submenu.html    (Add build_date selectbox on submenu.html)
+get_previous(request, num, build_date)        : testlist.html   (Get All 'TestList' data for that build_date)
+previous_cases(request, number, build_date)   : testcase.html   (Get All 'TestCase' data for that build_date)
+"""
+
 def index_selectbox(request, num):
   details = models.TestCase_Detail.objects.filter(TestCase__TestList__Project_id=num)
   build_dates = list(details.exclude(BuildDate=None).values_list('BuildDate', flat=True).distinct().order_by('-BuildDate'))
@@ -324,7 +379,6 @@ def get_previous(request, num, build_date):
     'timestamp' : timestamp
     })
 
-
 def previous_cases(request, number, build_date):
   testcases = models.TestCase.objects.filter(TestList_id=number)
   data = [each.previous(build_date) for each in testcases if each.previous(build_date) != None]
@@ -332,6 +386,15 @@ def previous_cases(request, number, build_date):
     if data[each].Result == "SLRUM_FAILED_QUEUE":
       data[each].Result = "C_FAILED"
   return render (request, 'main/testcase.html', {'testcase' : data, 'timestamp': timestamp})
+
+
+"""
+Search Data
+
+autocomplete_(request, num)           : submenu.html       (autocomplete function on html textbox)
+search_list(request, test_name, num)  : search_list.html   (Retrieve and render the entered data)
+search_case(request, test_name, num)  : search_case.html   (Retrieve and render the entered data)
+"""
 
 def autocomplete_list(request, num):
   term = request.GET.get('term')
@@ -370,29 +433,3 @@ def search_case(request, test_name, num):
     'timestamp' : timestamp
   }
   return render (request, 'main/search_case.html', context)
-
-@csrf_exempt
-def delete(request):
-  if request.method == 'POST':
-    data = json.loads(request.body)
-    project_name = data.get('project')
-    build_date = data.get('date')
-    project = get_object_or_404(models.Project, ProjectName=project_name)
-
-    # 해당 날짜 testcase_detail 삭제
-    testcase_details = models.TestCase_Detail.objects.filter(TestCase__TestList__Project=project, BuildDate=build_date)
-    count_details = testcase_details.count()
-    testcase_details.delete()
-
-    # TestCase_detail이 존재하지 않는 Testcase 삭제
-    testcases = models.TestCase.objects.annotate(num_details=Count('testcase_detail')).filter(num_details=0, TestList__Project=project)
-    count_cases = testcases.count()
-    testcases.delete()
-
-    # TestCase가 존재하지 않는 TestList 삭제
-    testlists = models.TestList.objects.annotate(num_cases=Count('testcase')).filter(num_cases=0, Project=project)
-    count_lists = testlists.count()
-    testlists.delete()
-    return JsonResponse({ 'message': f'{count_lists} Lists, {count_cases} Cases, {count_details} Details are deleted'})
-  else:
-    return JsonResponse({'message': 'Invalid request method.'})
